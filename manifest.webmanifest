@@ -1,0 +1,16 @@
+{
+  "name": "RCA Chat · Analisi causa radice",
+  "short_name": "RCA",
+  "description": "Analisi guidata causa radice per attrezzature – offline",
+  "lang": "it",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080c10",
+  "theme_color": "#0e1318",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

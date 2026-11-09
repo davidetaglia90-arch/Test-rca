@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RCA Chat · Analisi Guidata</title>
+<meta name="theme-color" content="#0e1318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RCA">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#080c10;--panel:#0e1318;--surface:#141a21;--border:#1e2830;--border2:#2a3540;--text:#d8e4ee;--muted:#6b8292;--accent:#00c8a0;--adim:rgba(0,200,160,.1);--a2:#f0a020;--a2dim:rgba(240,160,32,.1);--ubg:#0d1f2d;--ubrd:#1a3a50;--aibg:#0a1a14;--aibrd:#1a3528;--red:#f85149;--yel:#e3b341;--grn:#3fb950;
+--ff:ui-monospace,'SF Mono',Menlo,'JetBrains Mono',Consolas,monospace;--fd:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:var(--bg);color:var(--text);font-family:var(--ff);font-size:13px;display:flex;flex-direction:column;height:100vh;height:100dvh;-webkit-text-size-adjust:100%}
+.hdr{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:calc(10px + var(--st)) calc(14px + var(--sr)) 10px calc(14px + var(--sl));background:var(--panel);border-bottom:1px solid var(--border)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.htitle{font-family:var(--fd);font-size:16px;font-weight:700}.hsub{font-size:10px;color:var(--muted)}
+.hright{margin-left:auto;display:flex;gap:7px;align-items:center}
+.badge{font-size:10px;color:var(--muted);border:1px solid var(--border2);border-radius:20px;padding:3px 9px;white-space:nowrap}
+.hsub{white-space:nowrap}
+@media(max-width:440px){.badge{display:none}}
+.mbtn{white-space:nowrap;font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid var(--accent);background:var(--adim);color:var(--accent);cursor:pointer;font-family:var(--ff)}
+.pbar{flex-shrink:0;height:3px;background:var(--border)}.pfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--a2));width:0%;transition:width .5s ease}
+.phrow{flex-shrink:0;display:flex;align-items:center;padding:6px calc(14px + var(--sr)) 6px calc(14px + var(--sl));background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.phrow::-webkit-scrollbar{display:none}
+.ph{font-size:10px;color:var(--muted);letter-spacing:.4px;white-space:nowrap;padding:3px 7px;border-radius:4px;transition:all .2s}
+.ph.on{color:var(--accent);background:var(--adim)}.ph.done{color:var(--grn)}.phsep{color:var(--border2);margin:0 2px;font-size:10px}
+.chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px calc(12px + var(--sr)) 16px calc(12px + var(--sl));display:flex;flex-direction:column;gap:13px}
+.msg{display:flex;gap:8px;animation:mIn .2s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;max-width:85%}.msg.ai{align-self:flex-start;max-width:94%}
+.av{width:28px;height:28px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--fd)}
+.av.ai{background:var(--aibg);border:1px solid var(--aibrd);color:var(--accent)}
+.av.user{background:var(--ubg);border:1px solid var(--ubrd);color:var(--a2);font-size:11px}
+.bub{padding:10px 13px;border-radius:10px;line-height:1.7;font-size:14px;word-wrap:break-word;min-width:0}
+.msg.ai .bub{background:var(--aibg);border:1px solid var(--aibrd);border-top-left-radius:3px}
+.msg.user .bub{background:var(--ubg);border:1px solid var(--ubrd);border-top-right-radius:3px}
+.bub strong{color:var(--accent);font-weight:600}.bub em{color:var(--a2);font-style:normal}
+.vbox{margin-top:9px;padding:9px 12px;border-radius:7px;font-size:13px;line-height:1.6}
+.vi{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);color:#ff9088}
+.vp{background:rgba(227,179,65,.08);border:1px solid rgba(227,179,65,.3);color:var(--yel)}
+.vr{background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.3);color:var(--grn)}
+.vt{font-weight:700;margin-bottom:4px;font-family:var(--fd);font-size:14px}
+.pqs{margin-top:7px;font-size:12px}
+.pqs div{padding:6px 0;cursor:pointer}.pqs div:active{color:var(--accent)}.pqs div::before{content:'→ ';color:var(--accent);opacity:.6}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.chip{padding:8px 13px;border-radius:20px;border:1px solid var(--border2);font-size:13px;cursor:pointer;color:var(--muted);background:var(--surface);font-family:var(--ff);user-select:none;-webkit-user-select:none}
+.chip:active,.chip.p{border-color:var(--accent);color:var(--accent);background:var(--adim)}
+.chip.g{border-color:var(--grn);color:var(--grn);background:rgba(63,185,80,.08)}
+.chip.w{border-color:var(--yel);color:var(--yel);background:rgba(227,179,65,.08)}
+.scard{margin-top:9px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 12px}
+.srow{display:flex;gap:7px;font-size:12px;margin-bottom:4px}
+.slbl{color:var(--muted);min-width:90px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding-top:2px;flex-shrink:0}
+.iarea{flex-shrink:0;padding:10px calc(12px + var(--sr)) calc(10px + var(--sb)) calc(12px + var(--sl));background:var(--panel);border-top:1px solid var(--border)}
+.irow{display:flex;gap:7px;align-items:flex-end;max-width:900px;margin:0 auto}
+.iwrap{flex:1;position:relative}
+/* 16px evita lo zoom automatico di iOS sul campo di testo */
+#inp{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:10px 46px 10px 12px;color:var(--text);font-family:var(--ff);font-size:16px;resize:none;min-height:44px;max-height:140px;line-height:1.4;overflow-y:auto;-webkit-appearance:none}
+#inp:focus{outline:none;border-color:var(--accent)}#inp::placeholder{color:var(--muted)}#inp:disabled{opacity:.3}
+.sbtn{position:absolute;right:7px;bottom:7px;width:31px;height:31px;border-radius:8px;background:var(--accent);border:none;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+.sbtn:disabled{background:var(--border2)}
+.micbtn{width:44px;height:44px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.micbtn.on{border-color:var(--red);color:var(--red);background:rgba(248,81,73,.1);animation:mp 1s ease-in-out infinite}
+@keyframes mp{0%,100%{box-shadow:0 0 0 0 rgba(248,81,73,.3)}50%{box-shadow:0 0 0 5px rgba(248,81,73,0)}}
+.hint{font-size:10px;color:var(--muted);text-align:center;margin-top:5px}
+/* Report */
+.rov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:100;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(56px + var(--st)) calc(10px + var(--sr)) calc(20px + var(--sb)) calc(10px + var(--sl))}
+.rov.show{display:block}
+.rin{max-width:820px;margin:0 auto;background:#fff;color:#111;border-radius:10px;overflow:hidden;font-family:-apple-system,sans-serif}
+.rhead{background:#0a1a14;padding:16px 18px}
+.rt{font-family:var(--fd);font-size:19px;font-weight:800;color:#00c8a0}
+.rs{font-family:monospace;font-size:10px;color:#5a7080;margin-top:2px}
+.rmeta{display:flex;gap:14px;margin-top:9px;flex-wrap:wrap}
+.rmi{font-family:monospace;font-size:10px;color:#5a7080}
+.rmi strong{display:block;font-size:12px;color:#d8e4ee;margin-bottom:1px}
+.rbody{padding:16px 18px}
+.rsec{font-family:var(--fd);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#b06000;border-bottom:2px solid #f0e8d8;padding-bottom:4px;margin:18px 0 9px}
+.rf{margin-bottom:8px}.rl{font-family:monospace;font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+.rv{font-size:13px;padding:7px 10px;background:#f8f8f8;border:1px solid #e8e8e8;border-radius:5px;line-height:1.55;white-space:pre-wrap}
+.rgrid{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.rroot{background:#efffee;border:2px solid #2a9a3a;border-radius:8px;padding:12px 14px;margin-bottom:11px}
+.rrl{font-family:monospace;font-size:10px;color:#2a7a3a;letter-spacing:1px;margin-bottom:4px}
+.rrv{font-family:var(--fd);font-size:16px;font-weight:700;color:#1a4a28}
+.rflag{padding:7px 12px;border-radius:5px;margin-bottom:6px;font-size:12px;font-weight:600}
+.fll{background:#e8f0ff;border:1px solid #5090d0;color:#1a50c0}
+.fstd{background:#fff8e0;border:1px solid #d0a820;color:#8a6000}
+.ferr{background:#fff0ee;border:1px solid #c03028;color:#c03028}
+.rwhy,.rishi{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+.rwhy td,.rishi td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top}
+.rwhy td:first-child{font-family:monospace;font-size:10px;color:#888;width:74px}
+.rishi td:first-child{font-family:monospace;font-size:10px;color:#b06000;width:110px}
+.racts{display:flex;gap:8px;padding:12px 18px;background:#f4f4f4;border-top:1px solid #e0e0e0;flex-wrap:wrap}
+.rbtn{padding:10px 15px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:-apple-system,sans-serif}
+.rbtnp{background:#00a080;color:#fff}.rbtnb{background:#1a50c0;color:#fff}.rbtns{background:#e0e0e0;color:#333}
+.xbtn{position:fixed;top:calc(10px + var(--st));right:calc(14px + var(--sr));width:38px;height:38px;border-radius:50%;background:rgba(40,40,40,.9);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:101}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--sb));transform:translateX(-50%);background:#1e2830;color:var(--text);border:1px solid var(--border2);padding:9px 15px;border-radius:20px;font-size:12px;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;max-width:85%;text-align:center}
+.toast.show{opacity:1}
+/* Stampa / PDF: solo il report */
+@media print{
+  html,body{height:auto;overflow:visible;background:#fff;display:block}
+  .hdr,.pbar,.phrow,.chat,.iarea,.xbtn,.racts,.toast{display:none!important}
+  .rov{display:block!important;position:static;background:#fff;padding:0;overflow:visible}
+  .rin{max-width:none;border-radius:0}
+  .rhead{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rroot,.rflag{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="dot"></div>
+  <div><div class="htitle">RCA Chat</div><div class="hsub">Analisi causa radice · offline</div></div>
+  <div class="hright">
+    <div class="badge" id="badge">—</div>
+    <button class="mbtn" onclick="newAnalysis()">＋ Nuova</button>
+  </div>
+</div>
+<div class="pbar"><div class="pfill" id="prog"></div></div>
+<div class="phrow">
+  <div class="ph on" id="ph0">📋 Anagrafica</div><div class="phsep">›</div>
+  <div class="ph" id="ph1">🔍 Problema</div><div class="phsep">›</div>
+  <div class="ph" id="ph2">🧠 Analisi</div><div class="phsep">›</div>
+  <div class="ph" id="ph3">📐 Standard</div><div class="phsep">›</div>
+  <div class="ph" id="ph4">📚 Lesson</div><div class="phsep">›</div>
+  <div class="ph" id="ph5">📄 Report</div>
+</div>
+<div class="chat" id="chat"></div>
+<div class="iarea">
+  <div class="irow">
+    <button class="micbtn" id="mic" onclick="toggleMic()" title="Dettatura vocale">🎤</button>
+    <div class="iwrap">
+      <textarea id="inp" placeholder="Scrivi la risposta o usa il microfono…" rows="1" onkeydown="onKey(event)" oninput="rsz(this)" enterkeyhint="send"></textarea>
+      <button class="sbtn" id="sbtn" onclick="send()">↑</button>
+    </div>
+  </div>
+  <div class="hint" id="hint">↑ per inviare · 🎤 o il microfono della tastiera per dettare</div>
+</div>
+<div class="rov" id="rov">
+  <button class="xbtn" onclick="closeR()">✕</button>
+  <div class="rin">
+    <div class="rhead">
+      <div class="rt">REPORT — ANALISI CAUSA RADICE</div>
+      <div class="rs">ATTREZZATURE · COLLAUDO &amp; PRIME PRODUZIONI</div>
+      <div class="rmeta" id="rmeta"></div>
+    </div>
+    <div id="rflags" style="padding:11px 18px 0"></div>
+    <div class="rbody" id="rbody"></div>
+    <div class="racts">
+      <button class="rbtn rbtnp" onclick="printR()">🖨 Stampa / PDF</button>
+      <button class="rbtn rbtnb" onclick="csvR()">📊 Condividi CSV</button>
+      <button class="rbtn rbtns" onclick="closeR()">Chiudi</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── DATA ── */
+const KEY='rca-chat-state-v1';
+function blankD(){return{cod:'',tipo:'',proj:'',fase:'',data:'',analista:'',team:'',desc:'',comp:'',freq:'',method:'',whys:[],ishi:{},radice:'',azioni:'',stdSit:'',stdRef:'',stdNote:'',needStd:false,isLL:false,llTit:'',llAmb:'',llIns:'',note:'',rnum:''};}
+let D=blankD();
+let step=0,wLvl=0,iCat=0,recog=null,listening=false,inputOn=true,phase=0;
+const PROG=[0,14,28,50,68,82,100];
+const PHS=['ph0','ph1','ph2','ph3','ph4','ph5'];
+
+const ICATS=[
+  {k:'Macchina / Pressa',q:'Problemi legati alla pressa o macchina? (setup, guide colonne, battute, centratura, usura, pressione, velocità)',h:'Setup · guide colonne · centratura stampo · pressione/velocità · fine-corsa · attacco piastre'},
+  {k:'Metodo / Progettazione',q:'Errori di progettazione? Quote errate, giochi punzone-matrice sbagliati, springback, sequenza operazioni, distinta base?',h:'Quote/tolleranze errate · giochi punzone-matrice · springback · sequenza · distinta base · mancata revisione'},
+  {k:'Materiale',q:'Il materiale è conforme? Lotto diverso? Durezza, spessore, Rm fuori spec? Trattamento termico corretto?',h:'Materia prima fuori spec · durezza acciaio utensile · lotto diverso · orientamento fibra · trattamento termico'},
+  {k:'Manodopera / Esecuzione',q:'Errori di montaggio, assemblaggio, regolazione o lettura del disegno?',h:'Errore montaggio · allineamento · lettura disegno · componenti invertiti · serraggio · esperienza'},
+  {k:'Misura / Controllo',q:'I controlli dimensionali sono stati fatti correttamente? Strumenti calibrati? Metodo di misura adeguato?',h:'Strumenti non calibrati · metodo inadeguato · controllo non previsto · interpretazione disegno'},
+  {k:'Ambiente / Contesto',q:'Fattori ambientali o organizzativi? (temperatura, pressione sui tempi, lubrificazione, pulizia)',h:'Dilatazioni termiche · pressione temporale · lubrificazione · pulizia · vibrazioni'}
+];
+
+/* ── PERSISTENZA (salvataggio automatico sul telefono) ── */
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify({D,step,wLvl,iCat,inputOn,phase,chat:document.getElementById('chat').innerHTML,ph:document.getElementById('inp').placeholder}));}catch(e){}
+}
+function restore(){
+  try{
+    const s=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(!s||!s.chat)return false;
+    D=s.D;step=s.step;wLvl=s.wLvl;iCat=s.iCat;
+    document.getElementById('chat').innerHTML=s.chat;
+    if(s.ph)document.getElementById('inp').placeholder=s.ph;
+    setPhase(s.phase||0);
+    document.getElementById('badge').textContent=D.rnum;
+    setE(s.inputOn!==false,true);
+    scrollEnd();
+    return true;
+  }catch(e){return false;}
+}
+function newAnalysis(){
+  const started=D.cod||D.desc;
+  if(started&&!confirm('Iniziare una nuova analisi? Quella in corso verrà cancellata dal telefono (esporta prima il report se ti serve).'))return;
+  try{localStorage.removeItem(KEY);}catch(e){}
+  D=blankD();step=0;wLvl=0;iCat=0;
+  document.getElementById('chat').innerHTML='';
+  closeR();setPhase(0);init();
+}
+
+/* ── VALUTAZIONE CAUSA RADICE ── */
+function evalRC(txt,chain){
+  const t=txt.toLowerCase();
+  let r=0,i=0;
+  [/mancanza\s+di\s+(standard|procedura|check|verifica|processo)/,/standard\s+non\s+(esistente|previsto|definito)/,/non\s+(era\s+)?(previsto|codificato|standardizzato)/,/processo\s+di\s+(revisione|verifica|controllo)\s+non/,/nessun\s+(controllo|verifica|check)/,/gap\s+(nel|di)\s+(sistema|processo)/,/formazione\s+(mancante|insufficiente)/,/checklist\s+non\s+(esistente|usata)/,/decisione\s+di\s+progett\w+\s+(errata|sbagliata)/].forEach(rx=>{if(rx.test(t))r++;});
+  [/errore\s+(di|del|nella)/,/sbagliato|errato|scorretto/,/non\s+ha\s+(verificato|controllato)/,/dimenticato|tralasciato|saltato/,/operatore\s+ha\s+sbagliato/].forEach(rx=>{if(rx.test(t))i++;});
+  const depth=chain.length>=4?1:0;
+  const score=r-i+depth;
+  if(score>=2||(r>=1&&chain.length>=3))return'ROOT';
+  if(score>=1||chain.length>=3)return'MAYBE';
+  return'INT';
+}
+function probingQs(txt){
+  const t=txt.toLowerCase();const qs=[];
+  if(/errore|sbagliato|errato/.test(t)){qs.push('Perché quell\'errore non è stato intercettato prima? Quale controllo avrebbe dovuto fermarlo?');qs.push('Era disponibile un riferimento (disegno, standard, checklist) che avrebbe evitato l\'errore?');}
+  if(/non\s+(è stato|ha)\s+(verificato|controllato)/.test(t)){qs.push('Perché quella verifica non è stata fatta? Non era prevista, non c\'era tempo, o non se ne conosceva la necessità?');qs.push('Esiste una procedura che prevede quella verifica? È stata seguita?');}
+  if(/quota|tolleranza|misura|dimensione/.test(t)){qs.push('Perché la quota errata non è stata rilevata in fase di revisione del disegno?');qs.push('Esiste un processo di revisione disegni per questa tipologia di attrezzatura?');}
+  if(/materiale|lamiera|acciaio/.test(t)){qs.push('Perché il materiale non conforme è entrato in produzione? Manca un controllo in accettazione?');}
+  if(/montaggio|assemblaggio/.test(t)){qs.push('Perché il montaggio scorretto non è stato rilevato prima della messa in produzione?');qs.push('Esistono istruzioni di montaggio o una checklist per questa attrezzatura?');}
+  if(qs.length<2){qs.push('Perché questa situazione si è potuta verificare? Cosa avrebbe dovuto impedirla a monte?');qs.push('C\'è un processo o standard che avrebbe dovuto intercettare questo? Esisteva? È stato seguito?');qs.push('Questa causa dipende da un singolo errore puntuale o da un gap sistemico nel processo?');}
+  return qs.slice(0,3);
+}
+
+/* ── FLUSSO ── */
+function init(){
+  const now=new Date();
+  D.rnum=`RCA-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  D.data=now.toISOString().split('T')[0];
+  document.getElementById('badge').textContent=D.rnum;
+  ICATS.forEach(c=>{D.ishi[c.k]=[];});
+  step='cod';
+  ask('Ciao! Ti guido nell\'analisi causa radice, una domanda alla volta.\n\nIniziamo: qual è il <strong>codice</strong> dell\'attrezzatura e di che tipo si tratta?','es. ST-2025-047, stampo pressa meccanica');
+}
+
+function dispatch(r){
+  if(step==='cod'){const ci=r.indexOf(',');D.cod=trunc((ci>0?r.slice(0,ci):r.split(/\s+/)[0]).trim(),30);D.tipo=ci>0?r.slice(ci+1).trim():r;step='proj';ask('<em>'+trunc(D.cod,30)+'</em> — ok.\n\nA quale <strong>progetto o cliente</strong> è legata?','es. MAN TGX – Bracket A142');}
+  else if(step==='proj'){D.proj=r;step='fase';ask('In quale <strong>fase del processo</strong> è emerso il problema?',null,['Pre-collaudo in attrezzeria','Collaudo su macchina definitiva','Prime produzioni','Produzione di serie']);}
+  else if(step==='fase'){D.fase=r;step='team';ask('Chi ha <strong>lavorato sull\'attrezzatura</strong>, e chi fa questa analisi?','es. L. Rossi (attrezzeria) – analista: D. Maran');}
+  else if(step==='team'){const p=r.split(/analista[:\s]+/i);D.team=p[0].replace(/[\s,;–\-]+$/,'').trim();D.analista=p[1]?.trim()||r;setPhase(1);step='desc';ask('Perfetto.\n\nOra <strong>descrivi il problema</strong> liberamente: cosa succede, su quale componente, quando?','Descrivi il problema osservato…');}
+  else if(step==='desc'){D.desc=r;step='comp';ask('Hai descritto: <em>"'+trunc(r,80)+'"</em>\n\nSu quale <strong>componente o zona specifica</strong> dell\'attrezzatura si manifesta?','es. punzone Ø8, estrattore, matrice piega 90°');}
+  else if(step==='comp'){D.comp=r;step='freq';ask('Con quale <strong>frequenza</strong>? (sistematico, intermittente, dopo N colpi…)','es. sistematico dal primo colpo, 3 pezzi su 10');}
+  else if(step==='freq'){D.freq=r;suggestMethod();}
+  else if(step==='azioni'){D.azioni=r;setPhase(3);askStd();}
+  else if(step==='std-detail'){D.stdNote=r;if(D.stdSit!=='nuovo')D.stdRef=r.split(/[–:]/)[0].trim();askLL();}
+  else if(step==='ll-tit'){D.llTit=r;step='ll-amb';ask('A quale <strong>ambito</strong> si applica?','es. Tutti i nuovi stampi per lamiera AHSS > 600 MPa');}
+  else if(step==='ll-amb'){D.llAmb=r;step='ll-ins';ask('In una o due frasi: qual è l\'<strong>insegnamento chiave</strong>?');}
+  else if(step==='ll-ins'){D.llIns=r;doSummary();}
+  else if(step==='fix'){D.note=(D.note?D.note+'\n':'')+r;addAI('Annotato: la correzione comparirà nel report, nella sezione <strong>Note e correzioni</strong>.');doSummary();}
+  else if(step==='confirm'){addAI('Per modificare qualcosa tocca <strong>✏️ Modifica qualcosa</strong> nel riepilogo, oppure genera il report.');setE(false);}
+  else if(step==='whys'){handleWhy(r);}
+  else if(step==='ishi'){handleIshi(r);}
+  else if(step==='ishi-pick'){startWhys(r);}
+  else if(step==='ishi-main'){D.radice=r;askAzioni();}
+  else{setE(true);}
+}
+
+/* ── METODO ── */
+function suggestMethod(){
+  setPhase(2);
+  const t=D.desc.toLowerCase();
+  let m,reason;
+  if(/rottur|cediment|interferenz|multipli|diverse cause/.test(t)){m='combined';reason='Il tipo di problema suggerisce un approccio combinato: prima Ishikawa per mappare tutti i fattori, poi 5 Perché per approfondire la causa più probabile.';}
+  else if(/non so|non è chiaro|vari|diverse/.test(t)){m='ishikawa';reason='Con cause potenziali multiple, l\'Ishikawa aiuta a non perdere nessun fattore.';}
+  else{m='5-whys';reason='Il 5 Perché è il modo più diretto per arrivare alla causa radice.';}
+  D.method=m;step='method';
+  const mn={'5-whys':'5 Perché','ishikawa':'Ishikawa','combined':'Ishikawa + 5 Perché'};
+  addAI(`Suggerisco: <strong>${mn[m]}</strong>.\n\n${reason}`,`<div class="chips"><div class="chip p" onclick="confirmM()">✓ Procedi con ${mn[m]}</div><div class="chip" onclick="pickM('5-whys')">5 Perché</div><div class="chip" onclick="pickM('ishikawa')">Ishikawa</div><div class="chip" onclick="pickM('combined')">Combinato</div></div>`);
+  setE(false);
+}
+function confirmM(){rmChips();startAnalysis();}
+function pickM(m){D.method=m;confirmM();}
+function startAnalysis(){if(D.method==='5-whys')startWhys(D.desc);else startIshi();}
+
+/* ── 5 PERCHÉ ── */
+function startWhys(seed){
+  step='whys';wLvl=1;
+  const lbl=seed&&seed!==D.desc?'Causa da approfondire':'Problema osservato';
+  addAI(`<strong>${lbl}:</strong> ${seed||D.desc}\n\nAllora — <strong>Perché</strong> si verifica?`);
+  setE(true);
+}
+function handleWhy(r){
+  D.whys.push({lvl:wLvl,txt:r,verdict:null,isRoot:false});
+  const vrd=evalRC(r,D.whys);
+  const qs=probingQs(r);
+  D.whys[D.whys.length-1].verdict=vrd;
+  const vCfg={
+    INT:{cls:'vi',ic:'🔴',t:'Causa intermedia — scava ancora',msg:'Questa causa ha radici più profonde. Un altro "Perché?" ci porterà a qualcosa di più strutturale su cui agire davvero.'},
+    MAYBE:{cls:'vp',ic:'🟡',t:'Possibile causa radice',msg:'Potresti essere vicino, ma vale la pena verificare se c\'è ancora qualcosa sotto.'},
+    ROOT:{cls:'vr',ic:'🟢',t:'Probabile causa radice',msg:'Questa sembra una causa radice concreta: qualcosa di strutturale su cui si può agire per impedire il ripetersi del problema.'}
+  };
+  const vc=vCfg[vrd];
+  const qHTML=vrd!=='ROOT'?`<div class="pqs">${qs.map(q=>`<div onclick="useQ(this)">${q}</div>`).join('')}</div>`:'';
+  const chips=vrd==='ROOT'
+    ?`<div class="chips"><div class="chip g" onclick="confRoot(${D.whys.length-1})">✓ Conferma come causa radice</div><div class="chip w" onclick="contWhys()">Approfondisci ancora</div></div>`
+    :`<div class="chips"><div class="chip p" onclick="contWhys()">→ Continua al livello ${wLvl+1}</div><div class="chip w" onclick="confRoot(${D.whys.length-1})">Considera questa come radice</div></div>`;
+  addAI(`Perché #${wLvl}: <em>"${trunc(r,65)}"</em>`,`<div class="vbox ${vc.cls}"><div class="vt">${vc.ic} ${vc.t}</div>${vc.msg}${qHTML}</div>${chips}`);
+  setE(false);
+}
+function useQ(el){const i=document.getElementById('inp');addAI('Spunto: <em>'+el.textContent+'</em>');contWhys();i.focus();}
+function contWhys(){rmChips();wLvl++;if(wLvl>8){confRoot(D.whys.length-1);return;}addAI(`<strong>Perché #${wLvl}</strong> — perché si verifica: <em>"${trunc(D.whys[D.whys.length-1].txt,55)}"</em>?`);setE(true);}
+function confRoot(idx){rmChips();D.whys.forEach(w=>w.isRoot=false);D.whys[idx].isRoot=true;D.radice=D.whys[idx].txt;askAzioni();}
+function askAzioni(){setPhase(3);step='azioni';addAI(`✓ <strong>Causa radice confermata:</strong>\n\n<em>"${D.radice}"</em>\n\nOra le <strong>azioni correttive</strong>: cosa si dovrebbe fare per eliminare questa causa e impedire che si ripeta?`);setE(true);}
+
+/* ── ISHIKAWA ── */
+function startIshi(){step='ishi';iCat=0;nextIshi();}
+function nextIshi(){
+  if(iCat>=ICATS.length){finishIshi();return;}
+  const c=ICATS[iCat];
+  addAI(`<strong>[${iCat+1}/6] ${c.k}</strong>\n\n${c.q}\n\n<span style="font-size:11px;color:var(--muted)">${c.h}</span>`,`<div class="chips"><div class="chip" onclick="skipIshi()">Nessuna causa in questa categoria</div></div>`);
+  setE(true);
+}
+function skipIshi(){rmChips();D.ishi[ICATS[iCat].k]=[];iCat++;nextIshi();}
+function handleIshi(r){rmChips();D.ishi[ICATS[iCat].k]=r.trim()?r.split(/[,;\/\n]+/).map(s=>s.trim()).filter(Boolean):[];iCat++;nextIshi();}
+function finishIshi(){
+  const cats=Object.entries(D.ishi).filter(([,v])=>v.length);
+  if(!cats.length){addAI('Non sono state inserite cause. Ripartiamo dalla prima categoria.');startIshi();return;}
+  const sum=cats.map(([k,v])=>`<strong>${k}:</strong> ${v.join(' · ')}`).join('<br>');
+  if(D.method==='combined'){
+    addAI(`Cause mappate:\n\n${sum}\n\nScrivi quella che ti sembra la <strong>più probabile</strong>: la approfondiamo con i 5 Perché.`);
+    step='ishi-pick';
+  }else{
+    addAI(`Cause mappate:\n\n${sum}\n\nQuale ritieni la <strong>causa principale</strong>?`);
+    step='ishi-main';
+  }
+  setE(true);
+}
+
+/* ── STANDARD ── */
+function askStd(){
+  step='std-q';
+  addAI('Esiste uno <strong>standard aziendale o normativo</strong> che tratta l\'aspetto legato al problema?',
+    `<div class="chips"><div class="chip" onclick="stdC('si-ok')">✅ Esiste, applicato</div><div class="chip w" onclick="stdC('si-no')">⚠️ Esiste, NON applicato</div><div class="chip" onclick="stdC('nuovo')">🔴 Non esiste (da creare)</div><div class="chip" onclick="stdC('nd')">➖ Non pertinente</div></div>`);
+  setE(false);
+}
+function stdC(v){rmChips();D.stdSit=v;D.needStd=(v==='nuovo');
+  if(v==='nd'){askLL();return;}
+  const qs={'si-ok':'Qual è il riferimento? E perché il problema si è verificato nonostante lo standard fosse applicato?','si-no':'Qual è lo standard esistente? E perché non è stato applicato?','nuovo':'Su quale tema va costruito il nuovo standard? Descrivilo brevemente.'};
+  step='std-detail';addAI(qs[v]);setE(true);
+}
+
+/* ── LESSON LEARNED ── */
+function askLL(){
+  setPhase(4);step='ll-q';
+  const autoLL=D.needStd||D.stdSit==='si-no'||D.whys.length>=4;
+  const sug=autoLL?' Visto il caso, ti <strong>suggerisco di sì</strong>.':'';
+  addAI(`Questo problema è utile da condividere come <strong>Lesson Learned</strong>?${sug}`,
+    `<div class="chips"><div class="chip g" onclick="llC(true)">✅ Sì, genera scheda LL</div><div class="chip" onclick="llC(false)">➖ No, caso isolato</div></div>`);
+  setE(false);
+}
+function llC(v){rmChips();D.isLL=v;
+  if(v){step='ll-tit';ask('<strong>Titolo</strong> della Lesson Learned?','es. Interferenza punzone/estrattore su AHSS');}
+  else doSummary();
+}
+
+/* ── RIEPILOGO ── */
+const ML={'5-whys':'5 Perché','ishikawa':'Ishikawa','combined':'Ishikawa + 5 Perché'};
+function doSummary(){
+  setPhase(5);step='confirm';
+  let sc=`<div class="scard">`;
+  sc+=sr('Attrezzatura',D.cod+' — '+D.tipo);sc+=sr('Progetto',D.proj);sc+=sr('Problema',trunc(D.desc,85));
+  sc+=sr('Metodo',ML[D.method]||D.method);sc+=sr('Causa radice',D.radice);
+  sc+=sr('Standard',{nd:'—','si-ok':'✅ Applicato','si-no':'⚠️ Non applicato','nuovo':'🔴 Da creare'}[D.stdSit]||'—');
+  if(D.isLL)sc+=sr('Lesson Learned','✅ '+D.llTit);
+  if(D.note)sc+=sr('Note',D.note);
+  sc+=`</div>`;
+  addAI('Analisi completata. Riepilogo:',sc+`<div class="chips"><div class="chip g" onclick="genRep()">📄 Genera Report</div><div class="chip" onclick="fixQ()">✏️ Modifica qualcosa</div></div>`);
+  setE(false);
+}
+function sr(l,v){return v?`<div class="srow"><div class="slbl">${l}</div><div style="color:var(--text);font-size:12px;line-height:1.5">${v}</div></div>`:''}
+function fixQ(){rmChips();step='fix';addAI('Cosa vuoi correggere o aggiungere? Scrivilo e lo riporto nel report.');setE(true);}
+
+/* ── REPORT ── */
+function genRep(){
+  const sl={'si-ok':'✅ Esistente, applicato','si-no':'⚠️ Esistente, NON applicato','nuovo':'🔴 Non esistente – da creare','nd':'—'};
+  document.getElementById('rmeta').innerHTML=[['N° REPORT',D.rnum],['DATA',D.data],['CODICE',D.cod],['ANALISTA',D.analista],['METODO',ML[D.method]||'—']].map(([l,v])=>`<div class="rmi"><strong>${v||'—'}</strong>${l}</div>`).join('');
+  let fl='';
+  if(D.isLL)fl+=`<div class="rflag fll">📚 LESSON LEARNED</div>`;
+  if(D.needStd)fl+=`<div class="rflag fstd">📋 RICHIESTA CREAZIONE STANDARD</div>`;
+  if(D.stdSit==='si-no')fl+=`<div class="rflag ferr">⚠️ STANDARD NON APPLICATO</div>`;
+  document.getElementById('rflags').innerHTML=fl;
+  const rf=(l,v)=>v&&v!=='—'?`<div class="rf"><div class="rl">${l}</div><div class="rv">${v}</div></div>`:'';
+  const rfg=p=>`<div class="rgrid">${p.map(([l,v])=>rf(l,v)).join('')}</div>`;
+  const sec=t=>`<div class="rsec">${t}</div>`;
+  const whyTbl=()=>D.whys.length?`<table class="rwhy">${D.whys.map(w=>`<tr><td>${w.isRoot?'✓ RADICE':`Perché ${w.lvl}`}</td><td style="${w.isRoot?'color:#1a7a2a;font-weight:600':''}">${w.txt} <span style="font-size:10px">${{INT:'🔴',MAYBE:'🟡',ROOT:'🟢'}[w.verdict]||''}</span></td></tr>`).join('')}</table>`:'';
+  const ishiTbl=()=>{const e=Object.entries(D.ishi||{}).filter(([,v])=>v.length);return e.length?`<table class="rishi">${e.map(([k,v])=>`<tr><td>${k}</td><td>${v.map(i=>`• ${i}`).join('<br>')}</td></tr>`).join('')}</table>`:'';};
+  let rca='';
+  if(D.method==='5-whys')rca=whyTbl();
+  else if(D.method==='ishikawa')rca=ishiTbl()+rf('Causa principale',D.radice);
+  else rca=ishiTbl()+whyTbl();
+  let n=7;
+  const llS=D.isLL?sec((n++)+'. Lesson Learned')+rf('Titolo',D.llTit)+rf('Ambito',D.llAmb)+rf('Insegnamento',D.llIns):'';
+  const nsS=D.needStd?sec((n++)+'. Richiesta Standard')+rf('Contenuto proposto',D.stdNote):'';
+  const noS=D.note?sec((n++)+'. Note e correzioni')+rf('Note',D.note):'';
+  document.getElementById('rbody').innerHTML=`
+    ${sec('1. Anagrafica')}${rfg([['Codice',D.cod],['Tipo',D.tipo],['Progetto',D.proj]])}${rfg([['Fase',D.fase],['Data',D.data],['N° Report',D.rnum]])}${rfg([['Team',D.team],['Analista',D.analista]])}
+    ${sec('2. Problema')}${rf('Descrizione',D.desc)}${rfg([['Componente',D.comp],['Frequenza',D.freq]])}
+    ${sec(`3. Analisi RCA — ${ML[D.method]||'—'}`)}${rca}
+    ${sec('4. Causa Radice')}<div class="rroot"><div class="rrl">CAUSA RADICE DEFINITIVA</div><div class="rrv">${D.radice||'—'}</div></div>
+    ${sec('5. Azioni Correttive')}${rf('Azioni',D.azioni)}
+    ${sec('6. Standard')}${rf('Situazione',sl[D.stdSit]||'—')}${rf('Riferimento',D.stdRef)}${rf('Note',D.stdNote)}
+    ${llS}${nsS}${noS}
+    <div style="text-align:center;padding:14px 0 2px;color:#aaa;font-family:monospace;font-size:10px;border-top:1px solid #eee;margin-top:16px">RCA Chat · ${new Date().toLocaleString('it-IT')}</div>`;
+  document.getElementById('rov').classList.add('show');
+}
+function closeR(){document.getElementById('rov').classList.remove('show');}
+function printR(){
+  document.title='RCA_'+(D.cod||'report').replace(/[^\w-]/g,'_');
+  try{window.print();}catch(e){toast('Stampa non disponibile: usa Condividi → Stampa da Safari');}
+  setTimeout(()=>{document.title='RCA Chat · Analisi Guidata';},1500);
+}
+async function csvR(){
+  const R=(k,v)=>[k,String(v||'').replace(/\r?\n/g,' | ')];
+  const rows=[['REPORT RCA CHAT',''],['',''],['ANAGRAFICA',''],R('N° Report',D.rnum),R('Codice',D.cod),R('Tipo',D.tipo),R('Progetto',D.proj),R('Fase',D.fase),R('Data',D.data),R('Team',D.team),R('Analista',D.analista),['',''],['PROBLEMA',''],R('Descrizione',D.desc),R('Componente',D.comp),R('Frequenza',D.freq),['',''],['METODO RCA',ML[D.method]||'—']];
+  D.whys.forEach(w=>rows.push(R(`Perché ${w.lvl}${w.isRoot?' (RADICE)':''}`,w.txt)));
+  Object.entries(D.ishi||{}).filter(([,v])=>v.length).forEach(([k,v])=>rows.push(R(`[Ishikawa] ${k}`,v.join(' | '))));
+  rows.push(['',''],['CAUSA RADICE',''],R('Causa Radice',D.radice),['',''],['AZIONI',''],R('Azioni',D.azioni),['',''],['STANDARD',''],R('Situazione',D.stdSit),R('Riferimento',D.stdRef),R('Note',D.stdNote));
+  if(D.isLL)rows.push(['',''],['LESSON LEARNED',''],R('Titolo',D.llTit),R('Ambito',D.llAmb),R('Insegnamento',D.llIns));
+  if(D.note)rows.push(['',''],R('Note e correzioni',D.note));
+  const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  const name=`RCA_${(D.cod||'chat').replace(/[^\w-]/g,'_')}_${D.data||'export'}.csv`;
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  try{
+    const file=new File([blob],name,{type:'text/csv'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return;}
+  }catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+}
+
+/* ── UTILITÀ ── */
+function ask(txt,ph,chips){
+  const extra=chips?`<div class="chips">${chips.map(c=>`<div class="chip" onclick="cSend(this)">${c}</div>`).join('')}</div>`:null;
+  addAI(txt,extra);
+  document.getElementById('inp').placeholder=ph||'Scrivi la risposta o usa il microfono…';
+  setE(true);
+}
+function cSend(el){rmChips();document.getElementById('inp').value=el.textContent.trim();send();}
+function bubble(role,html){
+  const ch=document.getElementById('chat');
+  const w=document.createElement('div');w.className='msg '+role;
+  const av=document.createElement('div');av.className='av '+role;av.textContent=role==='ai'?'R':'👤';
+  const b=document.createElement('div');b.className='bub';b.innerHTML=html;
+  w.appendChild(av);w.appendChild(b);ch.appendChild(w);scrollEnd();
+}
+function addAI(txt,extra){bubble('ai',fmt(txt)+(extra||''));save();}
+function scrollEnd(){const ch=document.getElementById('chat');requestAnimationFrame(()=>{ch.scrollTop=ch.scrollHeight;});}
+function fmt(t){return(t||'').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');}
+function clean(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function rmChips(){document.querySelectorAll('.chat .chips').forEach(c=>c.remove());}
+function setPhase(n){phase=n;PHS.forEach((id,i)=>{const el=document.getElementById(id);if(!el)return;el.className='ph'+(i<n?' done':i===n?' on':'');});document.getElementById('prog').style.width=PROG[Math.min(n,6)]+'%';}
+function setE(on,noFocus){inputOn=on;document.getElementById('inp').disabled=!on;document.getElementById('sbtn').disabled=!on;save();}
+function trunc(s,n){s=s||'';return s.length>n?s.slice(0,n)+'…':s;}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function send(){
+  const inp=document.getElementById('inp');
+  const t=clean(inp.value.trim());
+  if(!t||!inputOn)return;
+  inp.value='';rsz(inp);
+  bubble('user',fmt(t));
+  setE(false);
+  setTimeout(()=>dispatch(t),200);
+}
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send();}}
+function rsz(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,140)+'px';}
+
+/* ── DETTATURA ── */
+function toggleMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Usa il 🎤 della tastiera iPhone per dettare');document.getElementById('inp').focus();return;}
+  if(listening){recog?.stop();return;}
+  recog=new SR();recog.lang='it-IT';recog.continuous=false;recog.interimResults=true;
+  recog.onstart=()=>{listening=true;document.getElementById('mic').classList.add('on');document.getElementById('hint').textContent='🎤 In ascolto… tocca di nuovo per fermare';};
+  recog.onresult=e=>{const t=Array.from(e.results).map(r=>r[0].transcript).join('');const i=document.getElementById('inp');i.value=t;rsz(i);};
+  const end=()=>{listening=false;document.getElementById('mic').classList.remove('on');document.getElementById('hint').textContent='↑ per inviare · 🎤 o il microfono della tastiera per dettare';};
+  recog.onend=end;
+  recog.onerror=ev=>{end();if(ev.error!=='no-speech'&&ev.error!=='aborted')toast('Dettatura non disponibile qui: usa il 🎤 della tastiera');};
+  try{recog.start();}catch(e){end();toast('Usa il 🎤 della tastiera iPhone per dettare');}
+}
+
+/* ── AVVIO ── */
+window.addEventListener('DOMContentLoaded',()=>{
+  if(!restore())init();
+  if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+});
+</script>
+</body>
+</html>
